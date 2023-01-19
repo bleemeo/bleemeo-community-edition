@@ -2,6 +2,7 @@ version: '3'
 services:
   glouton:
     image: bleemeo/bleemeo-agent
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /:/hostroot:ro
@@ -15,6 +16,7 @@ services:
 
   squirreldb-ingestor:
     image: bleemeo/squirreldb-ingestor
+    restart: unless-stopped
     environment:
       - INGESTOR_REMOTE_WRITE_URL=http://squirreldb:9201/api/v1/write
       - INGESTOR_MQTT_BROKER_URL=nats:1883
@@ -27,6 +29,7 @@ services:
 
   cassandra:
     image: cassandra
+    restart: unless-stopped
     cap_add:
     - SYS_NICE # Cassandra use mbind on NUMA system
     environment:
@@ -38,6 +41,7 @@ services:
 
   grafana:
     image: grafana/grafana
+    restart: unless-stopped
     volumes:
       - grafana-data:/var/lib/grafana
     ports:
@@ -45,6 +49,7 @@ services:
 
   nats:
     image: nats:2.9.5
+    restart: unless-stopped
     command: -c /etc/nats/nats-server.conf
     volumes:
       - ./nats.conf:/etc/nats/nats-server.conf:ro

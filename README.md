@@ -5,6 +5,10 @@
 The **Bleemeo Community Edition** is the Open Source and self hosted version of
 the Bleemeo monitoring solution.
 
+Deploying a robust, scalable monitoring solution can be time consuming. At
+Bleemeo, we focus on making users life easier. Check out the solution we offer
+on our [website](https://bleemeo.com) and try it now for free!
+
 - **Prometheus compatible**
   > Glouton exposes a Prometheus metric endpoint and SquirrelDB supports remote
   > Prometheus storage and PromQL queries.
@@ -38,16 +42,16 @@ And some third party components:
 This repository provides two docker compose to test the Bleemeo Community
 Edition:
 
-- a [base setup](#base)
+- a [quick start](#quick-start)
 - a [high availability setup](#high-availability)
 
 Check the [documentation](https://docs.bleemeo.com/community) to see how to
 deploy the Bleemeo Community Edition in production.
 
-## Base
+## Quick Start
 
-The base setup deploys one of each component: Glouton, SquirrelDB, Cassandra,
-SquirrelDB Ingestor, NATS and Grafana.
+The quick start setup deploys one of each component: Glouton, SquirrelDB,
+Cassandra, SquirrelDB Ingestor, NATS and Grafana.
 
 ```shell
 cd base
