@@ -55,7 +55,7 @@ Cassandra, SquirrelDB Ingestor, NATS and Grafana.
 
 ```shell
 cd base
-docker-compose up -d
+docker compose up -d
 ```
 
 Then go to http://localhost:3000 (default credentials are admin/admin) and:
@@ -77,11 +77,11 @@ The high availability docker compose provides:
 
 Due to some components not liking to change their IP address, they are fixed and
 use the subnet 172.29.0.0/16. If this conflict with one of your existing
-network, update the docker-compose file to change this subnet.
+network, update the Docker compose file to change this subnet.
 
 ```shell
 cd high-availability
-docker-compose up -d
+docker compose up -d
 ```
 
 Then go to http://localhost:3000 (default credentials are admin/admin) and:

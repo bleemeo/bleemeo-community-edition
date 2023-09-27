@@ -31,19 +31,19 @@ services:
 
   # NATS cluster.
   nats-1:
-    image: nats:2.9.5
+    image: nats:2.10.1
     command: -n nats-1 -c /etc/nats/nats-server.conf
     volumes:
       - ./nats.conf:/etc/nats/nats-server.conf:ro
 
   nats-2:
-    image: nats:2.9.5
+    image: nats:2.10.1
     command: -n nats-2 -c /etc/nats/nats-server.conf
     volumes:
       - ./nats.conf:/etc/nats/nats-server.conf:ro
 
   nats-3:
-    image: nats:2.9.5
+    image: nats:2.10.1
     command: -n nats-3 -c /etc/nats/nats-server.conf
     volumes:
       - ./nats.conf:/etc/nats/nats-server.conf:ro
@@ -57,7 +57,7 @@ services:
     labels:
       # Glouton is the monitoring agent made by Bleemeo.
       # On real setup of SquirrelDB, you probably want to monitor component, but
-      # this docker-compose is a quick-start used to test and evaluate SquirrelDB so disable
+      # this Docker compose is a quick-start used to test and evaluate SquirrelDB so disable
       # monitoring to avoid false notification.
       glouton.enable: "false"
     environment:
@@ -100,7 +100,7 @@ services:
 
   # Redis cluster.
   redis1:
-    image: redis:6
+    image: redis:7
     restart: unless-stopped
     labels:
       glouton.enable: "false"
@@ -112,7 +112,7 @@ services:
         ipv4_address: 172.29.0.21 # Redis need fixed IP of the cluster may fail to recover by itself if node switch their IPs or all node changes their IP.
 
   redis2:
-    image: redis:6
+    image: redis:7
     restart: unless-stopped
     labels:
       glouton.enable: "false"
@@ -124,7 +124,7 @@ services:
         ipv4_address: 172.29.0.22
 
   redis3:
-    image: redis:6
+    image: redis:7
     restart: unless-stopped
     labels:
       glouton.enable: "false"
@@ -136,7 +136,7 @@ services:
         ipv4_address: 172.29.0.23
 
   redis4:
-    image: redis:6
+    image: redis:7
     restart: unless-stopped
     labels:
       glouton.enable: "false"
@@ -148,7 +148,7 @@ services:
         ipv4_address: 172.29.0.24
 
   redis5:
-    image: redis:6
+    image: redis:7
     restart: unless-stopped
     labels:
       glouton.enable: "false"
@@ -160,7 +160,7 @@ services:
         ipv4_address: 172.29.0.25
 
   redis6:
-    image: redis:6
+    image: redis:7
     restart: unless-stopped
     labels:
       glouton.enable: "false"
@@ -172,7 +172,7 @@ services:
         ipv4_address: 172.29.0.26
 
   redis_init:
-    image: redis:6
+    image: redis:7
     restart: unless-stopped
     labels:
       glouton.enable: "false"
