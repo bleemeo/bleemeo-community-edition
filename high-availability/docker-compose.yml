@@ -1,4 +1,3 @@
-version: "3"
 services:
   # Note that the Gloutons in this docker compose are not intended for
   # production, they are not running with the host network so they will
