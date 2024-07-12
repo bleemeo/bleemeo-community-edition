@@ -31,19 +31,19 @@ services:
 
   # NATS cluster.
   nats-1:
-    image: nats:2.10.1
+    image: nats:2.10.17
     command: -n nats-1 -c /etc/nats/nats-server.conf
     volumes:
       - ./nats.conf:/etc/nats/nats-server.conf:ro
 
   nats-2:
-    image: nats:2.10.1
+    image: nats:2.10.17
     command: -n nats-2 -c /etc/nats/nats-server.conf
     volumes:
       - ./nats.conf:/etc/nats/nats-server.conf:ro
 
   nats-3:
-    image: nats:2.10.1
+    image: nats:2.10.17
     command: -n nats-3 -c /etc/nats/nats-server.conf
     volumes:
       - ./nats.conf:/etc/nats/nats-server.conf:ro
