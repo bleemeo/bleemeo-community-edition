@@ -1,6 +1,6 @@
 services:
   glouton:
-    image: bleemeo/bleemeo-agent
+    image: bleemeo/glouton
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -12,10 +12,14 @@ services:
     cap_add:
       - SYS_PTRACE # This permission is needed to monitor processes IO and memory used per process.
       - SYS_ADMIN # This permission is needed to retrieve the network interface names of containers.
+    depends_on:
+      - nats
 
   squirreldb-ingestor:
     image: bleemeo/squirreldb-ingestor
     restart: unless-stopped
+    depends_on:
+      - squirreldb
     environment:
       - INGESTOR_REMOTE_WRITE_URL=http://squirreldb:9201/api/v1/write
       - INGESTOR_MQTT_BROKER_URL=nats:1883
@@ -23,20 +27,28 @@ services:
   squirreldb:
     image: bleemeo/squirreldb
     restart: unless-stopped
+    depends_on:
+      cassandra:
+        condition: service_healthy
     environment:
-    - SQUIRRELDB_CASSANDRA_ADDRESSES=cassandra:9042
+      - SQUIRRELDB_CASSANDRA_ADDRESSES=cassandra:9042
 
   cassandra:
     image: cassandra
     restart: unless-stopped
     cap_add:
-    - SYS_NICE # Cassandra use mbind on NUMA system
+      - SYS_NICE # Cassandra use mbind on NUMA system
     environment:
-    # Limit memory usage.
-    - MAX_HEAP_SIZE=128M
-    - HEAP_NEWSIZE=24M
+      # Limit memory usage.
+      - MAX_HEAP_SIZE=128M
+      - HEAP_NEWSIZE=24M
     volumes:
-    - cassandra-data:/var/lib/cassandra
+      - cassandra-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   grafana:
     image: grafana/grafana
