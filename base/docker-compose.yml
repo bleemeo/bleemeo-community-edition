@@ -2,8 +2,6 @@ services:
   cassandra:
     image: cassandra:5
     restart: unless-stopped
-    networks:
-      - net_cassandra
     cap_add:
       - SYS_NICE # Cassandra use mbind on NUMA system
     environment:
@@ -21,9 +19,6 @@ services:
   squirreldb:
     image: bleemeo/squirreldb
     restart: unless-stopped
-    networks:
-      - net_cassandra
-      - net_squirreldb
     depends_on:
       cassandra:
         condition: service_healthy
@@ -33,9 +28,6 @@ services:
   squirreldb-ingestor:
     image: bleemeo/squirreldb-ingestor
     restart: unless-stopped
-    networks:
-      - net_squirreldb
-      - net_nats
     depends_on:
       - squirreldb
     environment:
@@ -46,8 +38,6 @@ services:
     image: nats:2
     restart: unless-stopped
     command: -c /etc/nats/nats-server.conf
-    networks:
-      - net_nats
     volumes:
       - ./nats.conf:/etc/nats/nats-server.conf:ro
     ports:
@@ -56,8 +46,6 @@ services:
   grafana:
     image: grafana/grafana
     restart: unless-stopped
-    networks:
-      - net_squirreldb
     volumes:
       - grafana-data:/var/lib/grafana
     ports:
@@ -83,8 +71,3 @@ volumes:
   grafana-data: {}
   cassandra-data: {}
   glouton-data: {}
-
-networks:
-  net_cassandra:
-  net_squirreldb:
-  net_nats:

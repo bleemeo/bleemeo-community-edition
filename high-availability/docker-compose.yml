@@ -1,55 +1,7 @@
 services:
-  # Note that the Gloutons in this docker compose are not intended for
-  # production, they are not running with the host network so they will
-  # not be able to discover the services running on your server.
-  glouton-1:
-    image: bleemeo/bleemeo-agent
-    hostname: server1.example.com
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /:/hostroot:ro
-      - ./glouton-1.conf:/etc/glouton/conf.d/90-mqtt.conf:ro
-      - glouton-data-1:/var/lib/glouton
-    pid: "host"
-    cap_add:
-      - SYS_PTRACE # This permission is needed to monitor processes IO and memory used per process.
-      - SYS_ADMIN # This permission is needed to retrieve the network interface names of containers.
-
-  glouton-2:
-    image: bleemeo/bleemeo-agent
-    hostname: server2.example.com
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /:/hostroot:ro
-      - ./glouton-2.conf:/etc/glouton/conf.d/90-mqtt.conf:ro
-      - glouton-data-2:/var/lib/glouton
-    pid: "host"
-    cap_add:
-      - SYS_PTRACE # This permission is needed to monitor processes IO and memory used per process.
-      - SYS_ADMIN # This permission is needed to retrieve the network interface names of containers.
-
-  # NATS cluster.
-  nats-1:
-    image: nats:2.10.17
-    command: -n nats-1 -c /etc/nats/nats-server.conf
-    volumes:
-      - ./nats.conf:/etc/nats/nats-server.conf:ro
-
-  nats-2:
-    image: nats:2.10.17
-    command: -n nats-2 -c /etc/nats/nats-server.conf
-    volumes:
-      - ./nats.conf:/etc/nats/nats-server.conf:ro
-
-  nats-3:
-    image: nats:2.10.17
-    command: -n nats-3 -c /etc/nats/nats-server.conf
-    volumes:
-      - ./nats.conf:/etc/nats/nats-server.conf:ro
-
   # Cassandra cluster.
   cassandra1:
-    image: cassandra
+    image: cassandra:5
     restart: unless-stopped
     cap_add:
       - CAP_SYS_NICE # Cassandra use mbind on NUMA system
@@ -63,12 +15,17 @@ services:
       - "MAX_HEAP_SIZE=128M"
       - "HEAP_NEWSIZE=24M"
       - "CASSANDRA_SEEDS=cassandra1,cassandra2"
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       default:
         ipv4_address: 172.29.0.11 # Cassandra don't like if node swap their IPs. Other case should be fine
 
   cassandra2:
-    image: cassandra
+    image: cassandra:5
     restart: unless-stopped
     cap_add:
       - CAP_SYS_NICE # Cassandra use mbind on NUMA system
@@ -78,12 +35,17 @@ services:
       - "MAX_HEAP_SIZE=128M"
       - "HEAP_NEWSIZE=24M"
       - "CASSANDRA_SEEDS=cassandra1,cassandra2"
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       default:
         ipv4_address: 172.29.0.12
 
   cassandra3:
-    image: cassandra
+    image: cassandra:5
     restart: unless-stopped
     cap_add:
       - CAP_SYS_NICE # Cassandra use mbind on NUMA system
@@ -96,6 +58,11 @@ services:
       - "MAX_HEAP_SIZE=128M"
       - "HEAP_NEWSIZE=24M"
       - "CASSANDRA_SEEDS=cassandra1,cassandra2"
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   # Redis cluster.
   redis1:
@@ -105,10 +72,15 @@ services:
       glouton.enable: "false"
     volumes:
       - ./redis.conf:/etc/redis.conf:ro
-    command: [ "/etc/redis.conf" ]
+    command: ["/etc/redis.conf"]
     networks:
       default:
         ipv4_address: 172.29.0.21 # Redis need fixed IP of the cluster may fail to recover by itself if node switch their IPs or all node changes their IP.
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   redis2:
     image: redis:7
@@ -117,10 +89,15 @@ services:
       glouton.enable: "false"
     volumes:
       - ./redis.conf:/etc/redis.conf:ro
-    command: [ "/etc/redis.conf" ]
+    command: ["/etc/redis.conf"]
     networks:
       default:
         ipv4_address: 172.29.0.22
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   redis3:
     image: redis:7
@@ -129,10 +106,15 @@ services:
       glouton.enable: "false"
     volumes:
       - ./redis.conf:/etc/redis.conf:ro
-    command: [ "/etc/redis.conf" ]
+    command: ["/etc/redis.conf"]
     networks:
       default:
         ipv4_address: 172.29.0.23
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   redis4:
     image: redis:7
@@ -141,10 +123,15 @@ services:
       glouton.enable: "false"
     volumes:
       - ./redis.conf:/etc/redis.conf:ro
-    command: [ "/etc/redis.conf" ]
+    command: ["/etc/redis.conf"]
     networks:
       default:
         ipv4_address: 172.29.0.24
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   redis5:
     image: redis:7
@@ -153,10 +140,15 @@ services:
       glouton.enable: "false"
     volumes:
       - ./redis.conf:/etc/redis.conf:ro
-    command: [ "/etc/redis.conf" ]
+    command: ["/etc/redis.conf"]
     networks:
       default:
         ipv4_address: 172.29.0.25
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   redis6:
     image: redis:7
@@ -165,10 +157,15 @@ services:
       glouton.enable: "false"
     volumes:
       - ./redis.conf:/etc/redis.conf:ro
-    command: [ "/etc/redis.conf" ]
+    command: ["/etc/redis.conf"]
     networks:
       default:
         ipv4_address: 172.29.0.26
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   redis_init:
     image: redis:7
@@ -177,7 +174,7 @@ services:
       glouton.enable: "false"
     volumes:
       - ./redis-init.sh:/usr/bin/redis-init.sh:ro
-    command: [ "/bin/sh", "/usr/bin/redis-init.sh" ]
+    command: ["/bin/sh", "/usr/bin/redis-init.sh"]
 
   # SquirrelDB cluster behind nginx load balancer.
   squirreldb1:
@@ -189,6 +186,15 @@ services:
       - SQUIRRELDB_CASSANDRA_ADDRESSES=cassandra1:9042,cassandra2:9042
       - SQUIRRELDB_CASSANDRA_REPLICATION_FACTOR=3
       - SQUIRRELDB_REDIS_ADDRESSES=redis1:6379,redis2:6379
+    depends_on:
+      cassandra1:
+        condition: service_healthy
+      cassandra2:
+        condition: service_healthy
+      redis1:
+        condition: service_healthy
+      redis2:
+        condition: service_healthy
     networks:
       default:
         ipv4_address: 172.29.0.31 # SquirrelDB don't care about its IP, but nginx will only resolve DNS name on startup. So if SquirrelDB change their IP, nginx will no longer send traffic to them
@@ -202,6 +208,15 @@ services:
       - SQUIRRELDB_CASSANDRA_ADDRESSES=cassandra1:9042,cassandra2:9042
       - SQUIRRELDB_CASSANDRA_REPLICATION_FACTOR=3
       - SQUIRRELDB_REDIS_ADDRESSES=redis1:6379,redis2:6379
+    depends_on:
+      cassandra1:
+        condition: service_healthy
+      cassandra2:
+        condition: service_healthy
+      redis1:
+        condition: service_healthy
+      redis2:
+        condition: service_healthy
     networks:
       default:
         ipv4_address: 172.29.0.32
@@ -211,6 +226,9 @@ services:
     labels:
       glouton.enable: "false"
     restart: unless-stopped
+    depends_on:
+      - squirreldb1
+      - squirreldb2
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
@@ -218,6 +236,8 @@ services:
 
   squirreldb-ingestor-1:
     image: bleemeo/squirreldb-ingestor
+    depends_on:
+      - squirreldb
     environment:
       - INGESTOR_REMOTE_WRITE_URL=http://squirreldb:9201/api/v1/write
       - INGESTOR_MQTT_BROKER_URL=nats-1:1883,nats-2:1883,nats-3:1883
@@ -227,12 +247,70 @@ services:
 
   squirreldb-ingestor-2:
     image: bleemeo/squirreldb-ingestor
+    depends_on:
+      - squirreldb
     environment:
       - INGESTOR_REMOTE_WRITE_URL=http://squirreldb:9201/api/v1/write
       - INGESTOR_MQTT_BROKER_URL=nats-1:1883,nats-2:1883,nats-3:1883
       - INGESTOR_MQTT_USERNAME=ingestor2
       - INGESTOR_MQTT_PASSWORD=passw0rd
       - INGESTOR_MQTT_ID=2
+
+  # NATS cluster.
+  nats-1:
+    image: nats:2
+    command: -n nats-1 -c /etc/nats/nats-server.conf
+    volumes:
+      - ./nats.conf:/etc/nats/nats-server.conf:ro
+
+  nats-2:
+    image: nats:2
+    command: -n nats-2 -c /etc/nats/nats-server.conf
+    volumes:
+      - ./nats.conf:/etc/nats/nats-server.conf:ro
+
+  nats-3:
+    image: nats:2
+    command: -n nats-3 -c /etc/nats/nats-server.conf
+    volumes:
+      - ./nats.conf:/etc/nats/nats-server.conf:ro
+
+  # Note that the Gloutons in this docker compose are not intended for
+  # production, they are not running with the host network so they will
+  # not be able to discover the services running on your server.
+  glouton-1:
+    image: bleemeo/bleemeo-agent
+    hostname: server1.example.com
+    depends_on:
+      - nats-1
+      - nats-2
+      - nats-3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /:/hostroot:ro
+      - ./glouton-1.conf:/etc/glouton/conf.d/90-mqtt.conf:ro
+      - glouton-data-1:/var/lib/glouton
+    pid: "host"
+    cap_add:
+      - SYS_PTRACE # This permission is needed to monitor processes IO and memory used per process.
+      - SYS_ADMIN # This permission is needed to retrieve the network interface names of containers.
+
+  glouton-2:
+    image: bleemeo/bleemeo-agent
+    hostname: server2.example.com
+    depends_on:
+      - nats-1
+      - nats-2
+      - nats-3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /:/hostroot:ro
+      - ./glouton-2.conf:/etc/glouton/conf.d/90-mqtt.conf:ro
+      - glouton-data-2:/var/lib/glouton
+    pid: "host"
+    cap_add:
+      - SYS_PTRACE # This permission is needed to monitor processes IO and memory used per process.
+      - SYS_ADMIN # This permission is needed to retrieve the network interface names of containers.
 
   grafana:
     image: grafana/grafana
