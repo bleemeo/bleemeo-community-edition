@@ -1,4 +1,68 @@
 services:
+  cassandra:
+    image: cassandra:5
+    restart: unless-stopped
+    networks:
+      - net_cassandra
+    cap_add:
+      - SYS_NICE # Cassandra use mbind on NUMA system
+    environment:
+      # Limit memory usage.
+      - MAX_HEAP_SIZE=128M
+      - HEAP_NEWSIZE=24M
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  squirreldb:
+    image: bleemeo/squirreldb
+    restart: unless-stopped
+    networks:
+      - net_cassandra
+      - net_squirreldb
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    environment:
+      - SQUIRRELDB_CASSANDRA_ADDRESSES=cassandra:9042
+
+  squirreldb-ingestor:
+    image: bleemeo/squirreldb-ingestor
+    restart: unless-stopped
+    networks:
+      - net_squirreldb
+      - net_nats
+    depends_on:
+      - squirreldb
+    environment:
+      - INGESTOR_REMOTE_WRITE_URL=http://squirreldb:9201/api/v1/write
+      - INGESTOR_MQTT_BROKER_URL=nats:1883
+
+  nats:
+    image: nats:2
+    restart: unless-stopped
+    command: -c /etc/nats/nats-server.conf
+    networks:
+      - net_nats
+    volumes:
+      - ./nats.conf:/etc/nats/nats-server.conf:ro
+    ports:
+      - 127.0.0.1:1883:1883
+
+  grafana:
+    image: grafana/grafana
+    restart: unless-stopped
+    networks:
+      - net_squirreldb
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - 127.0.0.1:3000:3000
+
   glouton:
     image: bleemeo/glouton
     restart: unless-stopped
@@ -15,59 +79,12 @@ services:
     depends_on:
       - nats
 
-  squirreldb-ingestor:
-    image: bleemeo/squirreldb-ingestor
-    restart: unless-stopped
-    depends_on:
-      - squirreldb
-    environment:
-      - INGESTOR_REMOTE_WRITE_URL=http://squirreldb:9201/api/v1/write
-      - INGESTOR_MQTT_BROKER_URL=nats:1883
-
-  squirreldb:
-    image: bleemeo/squirreldb
-    restart: unless-stopped
-    depends_on:
-      cassandra:
-        condition: service_healthy
-    environment:
-      - SQUIRRELDB_CASSANDRA_ADDRESSES=cassandra:9042
-
-  cassandra:
-    image: cassandra
-    restart: unless-stopped
-    cap_add:
-      - SYS_NICE # Cassandra use mbind on NUMA system
-    environment:
-      # Limit memory usage.
-      - MAX_HEAP_SIZE=128M
-      - HEAP_NEWSIZE=24M
-    volumes:
-      - cassandra-data:/var/lib/cassandra
-    healthcheck:
-      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  grafana:
-    image: grafana/grafana
-    restart: unless-stopped
-    volumes:
-      - grafana-data:/var/lib/grafana
-    ports:
-      - 127.0.0.1:3000:3000
-
-  nats:
-    image: nats:2.10.17
-    restart: unless-stopped
-    command: -c /etc/nats/nats-server.conf
-    volumes:
-      - ./nats.conf:/etc/nats/nats-server.conf:ro
-    ports:
-      - 127.0.0.1:1883:1883
-
 volumes:
   grafana-data: {}
   cassandra-data: {}
   glouton-data: {}
+
+networks:
+  net_cassandra:
+  net_squirreldb:
+  net_nats:
