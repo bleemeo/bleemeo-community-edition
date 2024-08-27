@@ -1,0 +1,23 @@
+namespace: bleemeo-community-edition
+
+images:
+- name: cassandra
+  newTag: "5.0"
+- name: redis
+  newTag: "7.4.0"
+- name: nats
+  newTag: "2.10.18"
+- name: bleemeo/squirreldb
+  newTag: "24.07.25.083508"
+- name: bleemeo/squirreldb-ingestor
+  newTag: "24.07.18.071635"
+- name: grafana/grafana
+  newTag: "11.2.0"
+
+resources:
+- cassandra/
+- redis/
+- squirreldb/
+- nats/
+- squirreldb-ingestor/
+- grafana/

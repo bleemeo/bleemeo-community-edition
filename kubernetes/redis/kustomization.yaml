@@ -1,0 +1,6 @@
+commonLabels:
+  app: redis
+
+resources:
+- deployment.yaml
+- service.yaml

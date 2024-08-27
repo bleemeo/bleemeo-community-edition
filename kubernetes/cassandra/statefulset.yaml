@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cassandra
+spec:
+  serviceName: cassandra
+  replicas: 3
+  template:
+    spec:
+      terminationGracePeriodSeconds: 500
+      containers:
+      - name: cassandra
+        image: cassandra:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9042
+          name: cql
+        securityContext:
+          capabilities:
+            add:
+            - IPC_LOCK
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - nodetool drain
+        env:
+        - name: K8S_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CASSANDRA_SEEDS
+          value: "cassandra-0.cassandra.$(K8S_NAMESPACE).svc.cluster.local,cassandra-1.cassandra.$(K8S_NAMESPACE).svc.cluster.local"
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        envFrom:
+        - configMapRef:
+            name: cassandra-env-config
+        readinessProbe:
+          exec:
+            command: ["/bin/sh", "-c", "nodetool status | grep -E \"^UN\\s+${POD_IP}\""]
+          periodSeconds: 90
+          timeoutSeconds: 15
+        volumeMounts:
+        - name: cassandra-config
+          mountPath: /etc/cassandra-override/
+        - name: cassandra-data
+          mountPath: /var/lib/cassandra
+      volumes:
+      - name: cassandra-config
+        configMap:
+          name: cassandra-config
+  volumeClaimTemplates:
+  - metadata:
+      name: cassandra-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 100Gi
