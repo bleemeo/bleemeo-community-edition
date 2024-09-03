@@ -1,3 +1,5 @@
+name: bleemeo-community-edition-ha
+
 services:
   # Cassandra cluster.
   cassandra1:
@@ -291,5 +293,3 @@ networks:
 volumes:
   grafana-data: {}
   cassandra-data: {}
-  glouton-data-1: {}
-  glouton-data-2: {}

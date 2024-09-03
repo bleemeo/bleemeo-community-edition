@@ -1,3 +1,5 @@
+name: bleemeo-community-edition-base
+
 services:
   cassandra:
     image: cassandra:5
@@ -54,4 +56,3 @@ services:
 volumes:
   grafana-data: {}
   cassandra-data: {}
-  glouton-data: {}

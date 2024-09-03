@@ -2,5 +2,5 @@ commonLabels:
   app: redis
 
 resources:
-- deployment.yaml
+- statefulset.yaml
 - service.yaml

@@ -1,14 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: redis
-  labels:
-    app: redis
 spec:
+  serviceName: redis
   replicas: 1
-  selector:
-    matchLabels:
-      app: redis
   template:
     spec:
       containers:
@@ -26,3 +22,11 @@ spec:
         readinessProbe:
           tcpSocket:
             port: 6379
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
