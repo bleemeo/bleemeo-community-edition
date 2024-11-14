@@ -14,3 +14,6 @@ services:
     cap_add:
       - SYS_PTRACE # This permission is needed to monitor processes IO and memory used per process.
       - SYS_ADMIN # This permission is needed to retrieve the network interface names of containers.
+
+volumes:
+  glouton-data: {}
