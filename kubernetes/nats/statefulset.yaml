@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nats
+spec:
+  template:
+    spec:
+      containers:
+      - name: nats
+        image: nats:2
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        command:
+        - /nats-server
+        - --config
+        - /etc/nats/nats.conf
+        - --name
+        - $(POD_NAME)
+        ports:
+        - containerPort: 1883
+        envFrom:
+        - configMapRef:
+            name: nats-config
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        volumeMounts:
+        - name: nats-config-file
+          mountPath: /etc/nats
+        readinessProbe:
+          tcpSocket:
+            port: 1883
+      volumes:
+      - name: nats-config-file
+        configMap:
+          name: nats-config
+

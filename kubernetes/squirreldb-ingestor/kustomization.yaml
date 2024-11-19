@@ -1,0 +1,12 @@
+commonLabels:
+  app: squirreldb-ingestor
+
+configMapGenerator:
+- name: squirreldb-ingestor-config
+  literals:
+  - INGESTOR_REMOTE_WRITE_URL=http://squirreldb:9201/api/v1/write
+  - INGESTOR_MQTT_BROKER_URL=nats:1883
+
+resources:
+- deployment.yaml
+

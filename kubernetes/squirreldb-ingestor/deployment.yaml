@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: squirreldb-ingestor
+spec:
+  template:
+    spec:
+      containers:
+      - name: squirreldb-ingestor
+        image: bleemeo/squirreldb-ingestor:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        envFrom:
+        - configMapRef:
+            name: squirreldb-ingestor-config

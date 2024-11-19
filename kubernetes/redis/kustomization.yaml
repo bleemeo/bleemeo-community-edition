@@ -1,0 +1,6 @@
+commonLabels:
+  app: redis
+
+resources:
+- statefulset.yaml
+- service.yaml

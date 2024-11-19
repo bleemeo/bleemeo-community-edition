@@ -1,0 +1,21 @@
+commonLabels:
+  app: cassandra
+
+configMapGenerator:
+- name: cassandra-config
+  options:
+    disableNameSuffixHash: true
+- name: cassandra-env-config
+  literals:
+  - SERVER_JVM_OPTS=-Xlog:gc=info,heap*=trace,age*=debug,safepoint=info,promotion*=info:file=/opt/cassandra/logs/gc.log:time,uptime,pid,tid,level:filecount=10,filesize=10485760
+  - CASSANDRA_CLUSTER_NAME=bleemeo-community-edition-cassandra
+  - CASSANDRA_DC=bleemeo-community-edition-dc
+  - CASSANDRA_RACK=bleemeo-community-edition-rack
+  - MAX_HEAP_SIZE=128M
+  - HEAP_NEWSIZE=24M
+  options:
+    disableNameSuffixHash: true
+
+resources:
+- statefulset.yaml
+- service.yaml

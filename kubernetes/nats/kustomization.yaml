@@ -1,0 +1,16 @@
+commonLabels:
+  app: nats
+
+configMapGenerator:
+- name: nats-config
+  files:
+  - nats.conf
+
+secretGenerator:
+- name: nats-jetstream-secrets
+  literals:
+  - JETSTREAM_PASSWORD=jetstream
+
+resources:
+- statefulset.yaml
+- service.yaml

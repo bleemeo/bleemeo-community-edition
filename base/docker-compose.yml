@@ -1,42 +1,49 @@
-services:
-  glouton:
-    image: bleemeo/bleemeo-agent
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /:/hostroot:ro
-      - ./glouton.conf:/etc/glouton/conf.d/90-mqtt.conf:ro
-      - glouton-data:/var/lib/glouton
-    network_mode: host
-    pid: "host"
-    cap_add:
-      - SYS_PTRACE # This permission is needed to monitor processes IO and memory used per process.
-      - SYS_ADMIN # This permission is needed to retrieve the network interface names of containers.
+name: bleemeo-community-edition-base
 
-  squirreldb-ingestor:
-    image: bleemeo/squirreldb-ingestor
+services:
+  cassandra:
+    image: cassandra:5
     restart: unless-stopped
+    cap_add:
+      - SYS_NICE # Cassandra use mbind on NUMA system
     environment:
-      - INGESTOR_REMOTE_WRITE_URL=http://squirreldb:9201/api/v1/write
-      - INGESTOR_MQTT_BROKER_URL=nats:1883
+      # Limit memory usage.
+      - MAX_HEAP_SIZE=128M
+      - HEAP_NEWSIZE=24M
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   squirreldb:
     image: bleemeo/squirreldb
     restart: unless-stopped
+    depends_on:
+      cassandra:
+        condition: service_healthy
     environment:
-    - SQUIRRELDB_CASSANDRA_ADDRESSES=cassandra:9042
+      - SQUIRRELDB_CASSANDRA_ADDRESSES=cassandra:9042
 
-  cassandra:
-    image: cassandra
+  squirreldb-ingestor:
+    image: bleemeo/squirreldb-ingestor
     restart: unless-stopped
-    cap_add:
-    - SYS_NICE # Cassandra use mbind on NUMA system
+    depends_on:
+      - squirreldb
     environment:
-    # Limit memory usage.
-    - MAX_HEAP_SIZE=128M
-    - HEAP_NEWSIZE=24M
+      - INGESTOR_REMOTE_WRITE_URL=http://squirreldb:9201/api/v1/write
+      - INGESTOR_MQTT_BROKER_URL=nats:1883
+
+  nats:
+    image: nats:2
+    restart: unless-stopped
+    command: -c /etc/nats/nats-server.conf
     volumes:
-    - cassandra-data:/var/lib/cassandra
+      - ./nats.conf:/etc/nats/nats-server.conf:ro
+    ports:
+      - 127.0.0.1:1883:1883
 
   grafana:
     image: grafana/grafana
@@ -46,16 +53,6 @@ services:
     ports:
       - 127.0.0.1:3000:3000
 
-  nats:
-    image: nats:2.10.17
-    restart: unless-stopped
-    command: -c /etc/nats/nats-server.conf
-    volumes:
-      - ./nats.conf:/etc/nats/nats-server.conf:ro
-    ports:
-      - 127.0.0.1:1883:1883
-
 volumes:
   grafana-data: {}
   cassandra-data: {}
-  glouton-data: {}
