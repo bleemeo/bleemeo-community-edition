@@ -56,6 +56,9 @@ Cassandra, SquirrelDB Ingestor, NATS and Grafana.
 ```shell
 cd base
 docker compose up -d
+
+cd ../agent
+docker compose up -d
 ```
 
 Then go to http://localhost:3000 (default credentials are admin/admin) and:
